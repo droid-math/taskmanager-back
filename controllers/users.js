@@ -1,38 +1,74 @@
-import { v4 as uuid } from 'uuid';
+import { promisePool } from '../db.js';
 
-let users = [];
-
-export const getUsers = (req, res) => {
-    console.log(`Users in the database: ${users}`);
-
-    res.send(users);
-}
-
-export const createUser = (req, res) => {   
-    const user = req.body;
-
-    users.push({...user, id: uuid()});
-    
-    console.log(`User [${user.username}] added to the database.`);
-
-    res.send("Added success")
+export const getUsers = async (req, res) => {
+  try {
+    const [rows] = await promisePool.query('SELECT * FROM usuarios');
+    console.log(`Users in the database: ${JSON.stringify(rows, null, 2)}`);
+    res.send(rows);
+  } catch (error) {
+    console.error(`Error fetching users: ${error.message}`);
+    res.status(500).send('Error fetching users');
+  }
 };
 
-export const getUser = (req, res) => {
-    res.send(req.params.id)
+export const createUser = async (req, res) => {
+  try {
+    const { name, password } = req.body;
+    const foto = req.foto || null;
+    const creationdate = new Date().toISOString().split('T')[0];
+    const [result] = await promisePool.query(
+      'INSERT INTO usuarios (name, password, creationdate, foto) VALUES (?, ?, ?, ?)',
+      [name, password, creationdate, foto]
+    );
+    console.log(`User [${name}] added to the database with ID ${result.insertId}.`);
+    res.send('User added successfully');
+  } catch (error) {
+    console.error(`Error creating user: ${error.message}`);
+    res.status(500).send('Error creating user');
+  }
+};''
+
+export const getUserById = async (req, res) => {
+  try {
+    const [rows] = await promisePool.query('SELECT * FROM usuarios WHERE userid = ?', [req.params.id]);
+    if (rows.length === 0) {
+      return res.status(404).send('User not found');
+    }
+    res.send(rows[0]);
+  } catch (error) {
+    console.error(`Error fetching user: ${error.message}`);
+    res.status(500).send('Error fetching user');
+  }
 };
 
-export const deleteUser = (req, res) => { 
-    console.log(`user with id ${req.params.id} has been deleted`);
-    
-    users = users.filter((user) => user.id !== req.params.id);
+export const deleteUser = async (req, res) => {
+  try {
+    const [result] = await promisePool.query('DELETE FROM usuarios WHERE userid = ?', [req.params.id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).send('User not found');
+    }
+    console.log(`User with id ${req.params.id} has been deleted`);
+    res.send('User deleted successfully');
+  } catch (error) {
+    console.error(`Error deleting user: ${error.message}`);
+    res.status(500).send('Error deleting user');
+  }
 };
 
-export const updateUser =  (req,res) => {
-    const user = users.find((user) => user.id === req.params.id);
-    
-    user.username = req.body.username;
-    user.age = req.body.age;
-
-    console.log(`username has been updated to ${req.body.username}.age has been updated to ${req.body.age}`)
+export const updateUser = async (req, res) => {
+  try {
+    const { name, password, creationdate, foto } = req.body;
+    const [result] = await promisePool.query(
+      'UPDATE usuarios SET name = ?, password = ?, creationdate = ?, foto = ? WHERE userid = ?',
+      [name, password, creationdate, foto, req.params.id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).send('User not found');
+    }
+    console.log(`User with id ${req.params.id} has been updated`);
+    res.send('User updated successfully');
+  } catch (error) {
+    console.error(`Error updating user: ${error.message}`);
+    res.status(500).send('Error updating user');
+  }
 };
