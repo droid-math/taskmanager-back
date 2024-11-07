@@ -20,11 +20,11 @@ export const createUser = async (req, res) => {
       'INSERT INTO usuarios (name, password, creationdate, foto) VALUES (?, ?, ?, ?)',
       [name, password, creationdate, foto]
     );
-    console.log(`User [${name}] added to the database with ID ${result.insertId}.`);
-    res.send('User added successfully');
+    console.log(`Usuário [${name}] adicionado com sucesso no ID: ${result.insertId}.`);
+    res.send('Usuário adicionado com sucesso');
   } catch (error) {
-    console.error(`Error creating user: ${error.message}`);
-    res.status(500).send('Error creating user');
+    console.error(`Erro ao criar usuário: ${error.message}`);
+    res.status(500).send('`Erro ao criar usuário');
   }
 };''
 

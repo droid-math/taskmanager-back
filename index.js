@@ -17,6 +17,14 @@ app.use(cors());
 
 app.use("/users", usersRoutes);
 app.use("/tasks", tasksRoutes);
+app.use("/login", (req, res) => {
+    const { username, password } = req.body; 
+    if (username === "admin" && password === "admin123") {
+        res.send("Logado com sucesso!"); 
+    } else {
+        res.status(401).send("Usuário ou senha inválidos!"); 
+    }
+})
 app.get("/", (req, res) => res.send("Bem-vindo"));
 app.all("*", (req, res) => res.send("Sem resposta possível"));
 
