@@ -67,9 +67,10 @@ export const deleteTask = async (req, res) => {
 // Controller para atualizar uma tarefa
 export const updateTask = async (req, res) => {
     const taskId = req.params.id;
-    const { description, owner, ownerName, status, startDate } = req.body;
+    const { description, owner, ownerName, priority, status, startDate } = req.body;
+    const date = new Date(startDate).toISOString().split('T')[0];
     try {
-        await promisePool.query('UPDATE tarefas SET description = ?, owner = ?, ownerName = ?, status = ?, startDate = ? WHERE id = ?', [description, owner, ownerName, status, startDate, taskId]);
+        await promisePool.query('UPDATE tarefas SET description = ?, owner = ?, ownerName = ?, priority = ?, status = ?, startDate = ? WHERE id = ?', [description, owner, ownerName, priority, status, date, taskId]);
         res.json({ message: 'Task updated successfully' });
     } catch (error) {
         console.error('Error updating task:', error);
